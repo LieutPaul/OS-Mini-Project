@@ -7,6 +7,7 @@
 #include "user.h"
 
 int setup_user_connection(){
+    int type=1;
     struct sockaddr_in serv;
 
     int sd = socket(AF_INET, SOCK_STREAM, 0); 
@@ -17,13 +18,9 @@ int setup_user_connection(){
 
     connect(sd, (struct sockaddr *) &serv, sizeof(serv)); 
 
-    write(sd,"user",sizeof("user"));
+    write(sd,&type,sizeof(int));
 
     return sd;
-}
-
-void send_user_message(int sd){
-    write(sd, "Message From user to server.\n", sizeof("Message From user to server.\n"));
 }
 
 

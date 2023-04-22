@@ -20,130 +20,46 @@ void add_product(struct Product admin_products[], struct Product product, int le
     for(int i=0;i<length;i++){
         if(admin_products[i].id==-1){
             admin_products[i]=product;
-            return ;
+            printf("Added\n");
+            return;
         }
     }
+    printf("Could Not Add\n");
 }
 
-int delete_product(struct Product admin_products[], int id, int length){
+void delete_product(struct Product admin_products[], int id, int length){
     for(int i=0;i<length;i++){
         if(admin_products[i].id==id){
             admin_products[i].id=-1;
-            return 1;
+            printf("Deleted\n");
+            return ;
         }
     }
-    return 0;
+    printf("Product not found\n");
+
 }
 
-int update_price(struct Product admin_products[], int id, int price,int length){
+void update_price(struct Product admin_products[], int id, int price,int length){
     for(int i=0;i<length;i++){
         if(admin_products[i].id==id){
             admin_products[i].price=price;
-            return 1;
+            printf("Updated\n");
+            return ;
         }
     }
-    return 0;
+    printf("Product not found\n");
 }
 
-int update_quantity(struct Product admin_products[], int id, int quantity,int length){
+void update_quantity(struct Product admin_products[], int id, int quantity,int length){
     for(int i=0;i<length;i++){
         if(admin_products[i].id==id){
             admin_products[i].quantity=quantity;
-            return 1;
+            printf("Updated\n");
+            return ;
         }
     }
-    return 0;
+    printf("Product not found\n");
 }
-
-void print_products(struct Product admin_products[], int length){
-    printf("\n");
-    for(int i=0;i<length;i++){
-        if(admin_products[i].id!=-1){
-            printf("ID: %d\n",admin_products[i].id);
-            printf("Name: %s\n",admin_products[i].name);
-            printf("Price: %d\n",admin_products[i].price);
-            printf("Quantity: %d\n\n",admin_products[i].quantity);
-        }
-    }
-}
-
-void admin_options(){
-    int choice=0;
-    struct Product admin_products[1000];
-    clear_products(admin_products,1000);
-
-    while(1){
-        printf("Enter: \n1 to add a new Product.\n2 to delete a product.\n3 to update the price of a product.\n4 to update the quantity of a product.\n5 to see all your products.\n6 to exit.\n");
-        scanf("%d",&choice);
-        if(choice==1){
-
-            struct Product product;
-            printf("Enter id of product (>0): ");
-            scanf(" %d",&product.id);
-            printf("Enter name of product: ");
-            scanf(" %[^\n]s",product.name);
-            printf("Enter cost of product: ");
-            scanf(" %d",&product.price);
-            printf("Enter quantity of product: ");
-            scanf(" %d",&product.quantity);
-            add_product(admin_products,product,1000);
-
-        }else if(choice==2){
-            
-            int id=0;
-            printf("Enter id of product to delete (>0): ");
-            scanf("%d",&id);
-            if(delete_product(admin_products,id,1000)==1){
-                printf("Deleted item with id : %d \n",id);
-            }else{
-                printf("Item with id : %d does not exist.\n",id);
-            }
-
-        }else if(choice==3){
-            
-            int id,price;
-            printf("Enter id of product to update price of: ");
-            scanf("%d",&id);
-            printf("Enter new price of item: ");
-            scanf("%d",&price);
-            if(update_price(admin_products,id,price,1000)==1){
-                printf("Updated price of item with id : %d.\n",id);
-            }else{
-                printf("Item with id : %d does not exist.\n",id);
-            }
-
-        }else if(choice==4){
-
-            int id,quantity;
-            printf("Enter id of product to update quantity of: ");
-            scanf("%d",&id);
-            printf("Enter new quantity of item: ");
-            scanf("%d",&quantity);
-            if(update_quantity(admin_products,id,quantity,1000)==1){
-                printf("Updated quantity of item with id : %d.\n",id);
-            }else{
-                printf("Item with id : %d does not exist.\n",id);
-            }
-
-        }else if(choice==5){
-
-            print_products(admin_products,1000);
-        
-        }else if(choice==6){
-
-            break;
-
-        }
-    }
-}
-
-
-
-
-
-
-
-
 
 
 int setup_connection(){
@@ -162,30 +78,54 @@ int setup_connection(){
 }
 
 int main(){
-    char user[50]="user",admin[50]="admin";
-    int sd = setup_connection(),nsd=0;
+    struct Product products[1000];
+    clear_products(products,1000);
+    int sd = setup_connection(),nsd=0,type;
     struct sockaddr_in client;
     printf("Listening to connections\n");
     while(1){
         socklen_t clientLen = sizeof(client);
         nsd = accept(sd, (struct sockaddr *)&client, &clientLen);
-        char buf[100];
         if(!fork()){
-            read(nsd, buf, sizeof(buf));
-            if(strcmp(buf,user)==0){
-                printf("Connected to user\n");
+            read(nsd, &type, sizeof(int));
+
+            if(type==0){
+
+                printf("\nConnected to an admin\n");
+                while(1){
+                    int choice=0;
+                    read(nsd, &choice, sizeof(int));
+                    if(choice==1){
+                        struct Product product;
+                        read(nsd,&product,sizeof(struct Product));
+                        add_product(products,product,1000);
+                    }else if(choice==2){
+                        int id;
+                        read(nsd,&id,sizeof(int));
+                        delete_product(products,id,1000);
+                    }else if(choice==3){
+                        int id,price;
+                        read(nsd,&id,sizeof(int));
+                        read(nsd,&price,sizeof(int));
+                        update_price(products,id,price,1000);
+                    }else if(choice==4){
+                        int id,quantity;
+                        read(nsd,&id,sizeof(int));
+                        read(nsd,&quantity,sizeof(int));
+                        update_quantity(products,id,quantity,1000);
+                    }else if(choice==5){
+                        write(nsd,products,sizeof(products));
+                    }
+                }
+
+            }else if(type==1){
+
+                printf("Connected to a user\n");
                 while(1){
                     // user functions
-                    read(nsd, buf, sizeof(buf));
-                    printf("%s\n",buf);
+                    
                 }
-            }else if(strcmp(buf,admin)==0){
-                printf("Connected to admin\n");
-                while(1){
-                    // admin functions
-                    read(nsd, buf, sizeof(buf));
-                    printf("%s\n",buf);
-                }
+
             }
         }   
     }
