@@ -4,13 +4,10 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include "user.h"
 
-#include "admin.h"
-
-int setup_admin_connection(){
+int setup_user_connection(){
     struct sockaddr_in serv;
-
-    char buff[1000];
 
     int sd = socket(AF_INET, SOCK_STREAM, 0); 
 
@@ -20,11 +17,13 @@ int setup_admin_connection(){
 
     connect(sd, (struct sockaddr *) &serv, sizeof(serv)); 
 
-    write(sd,"admin",sizeof("admin"));
-    
+    write(sd,"user",sizeof("user"));
+
     return sd;
 }
 
-void send_admin_message(int sd){
-    write(sd, "Message From admin to server.\n", sizeof("Message From admin to server.\n"));
+void send_user_message(int sd){
+    write(sd, "Message From user to server.\n", sizeof("Message From user to server.\n"));
 }
+
+

@@ -5,26 +5,26 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+#include "admin.h"
+#include "user.h"
+
 int main(){
-    struct sockaddr_in serv;
-    int sd,ret;
-    char buff[1000];
-
-    sd = socket(AF_INET, SOCK_STREAM, 0); // 0 -> IP
-
-    serv.sin_family = AF_INET;
-    serv.sin_addr.s_addr = inet_addr("127.0.0.1");
-    serv.sin_port = htons(5001); // Port Number
-
-    connect(sd, (struct sockaddr *) &serv, sizeof(serv)); // connect will setup connection establishment: initiate 3 way hand shake
-
-    printf("Press enter to send message to server.\n");
-    getchar();
-    write(sd, "Message From client to server.\n", sizeof("Message From client to server\n"));
-    
-    close(sd);
-
-    return (0);
+    int choice=0,sd=0;
+    printf("Enter 1 to login as user and 2 to login as admin\n");
+    scanf("%d",&choice);
+    if(choice==1){
+        sd = setup_user_connection();
+        while(1){
+            printf("Press enter to send message\n");
+            getchar();
+            send_user_message(sd);
+        }        
+    }else if(choice==2){
+        sd = setup_admin_connection();
+        while(1){
+            printf("Press enter to send message\n");
+            getchar();
+            send_admin_message(sd);
+        } 
+    }
 }
-
-
