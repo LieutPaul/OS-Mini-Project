@@ -13,7 +13,8 @@ int main(){
     printf("Enter 1 to login as user and 2 to login as admin\n");
     scanf("%d",&choice);
     if(choice==1){
-        sd = setup_user_connection();
+        sd = setup_user_connection(1); // Find a way to get customer id
+        user_options(sd);
     }else if(choice==2){
         sd = setup_admin_connection();
         admin_options(sd);

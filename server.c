@@ -10,55 +10,74 @@
 
 #include "structs.h"
 
-void clear_products(struct Product admin_products[],  int length){
-    for(int i=0;i<length;i++){
-        admin_products[i].id=-1;
-    }
-}
-
-void add_product(struct Product admin_products[], struct Product product, int length){
-    for(int i=0;i<length;i++){
-        if(admin_products[i].id==-1){
-            admin_products[i]=product;
-            printf("Added\n");
-            return;
+void add_product(struct Product product){
+    int fd = open("products.dat", O_RDWR, 0777);
+    struct Product temp_product;
+    while(read(fd,&temp_product,sizeof(struct Product)) != 0){
+        if(temp_product.id==-1){
+            lseek(fd,-sizeof(struct Product),SEEK_CUR);
+            write(fd,&product,sizeof(struct Product));
+            printf("Added Product\n");
+            return ;
         }
     }
     printf("Could Not Add\n");
 }
 
-void delete_product(struct Product admin_products[], int id, int length){
-    for(int i=0;i<length;i++){
-        if(admin_products[i].id==id){
-            admin_products[i].id=-1;
-            printf("Deleted\n");
+void delete_product(int id){
+    int fd = open("products.dat",O_RDONLY, 0777);
+    struct Product temp_product;
+    while(read(fd,&temp_product,sizeof(struct Product)) != 0){
+        if(temp_product.id==id){
+            temp_product.id=-1;
+            // lseek(fd,-sizeof(struct Product),SEEK_CUR);
+            write(fd,&temp_product,sizeof(struct Product));
+            printf("Deleted Product\n");
             return ;
         }
     }
-    printf("Product not found\n");
-
+    printf("Could Not Find Product\n");
 }
 
-void update_price(struct Product admin_products[], int id, int price,int length){
-    for(int i=0;i<length;i++){
-        if(admin_products[i].id==id){
-            admin_products[i].price=price;
-            printf("Updated\n");
+void update_price(int id, int price){
+    int fd = open("products.dat",O_RDONLY, 0777);
+    struct Product temp_product;
+    while(read(fd,&temp_product,sizeof(struct Product)) != 0){
+        if(temp_product.id==id){
+            temp_product.price=price;
+            // lseek(fd,-sizeof(struct Product),SEEK_CUR);
+            write(fd,&temp_product,sizeof(struct Product));
+            printf("Updated Product\n");
             return ;
         }
     }
-    printf("Product not found\n");
+    printf("Could Not Find Product\n");
 }
 
-void update_quantity(struct Product admin_products[], int id, int quantity,int length){
-    for(int i=0;i<length;i++){
-        if(admin_products[i].id==id){
-            admin_products[i].quantity=quantity;
-            printf("Updated\n");
+void update_quantity(int id, int quantity){
+    int fd = open("products.dat",O_RDONLY, 0777);
+    struct Product temp_product;
+    while(read(fd,&temp_product,sizeof(struct Product)) != 0){
+        if(temp_product.id == id){
+            temp_product.quantity = quantity;
+            // lseek(fd,-sizeof(struct Product),SEEK_CUR);
+            write(fd,&temp_product,sizeof(struct Product));
+            printf("Updated Product\n");
             return ;
         }
     }
-    printf("Product not found\n");
+    printf("Could Not Find Product\n");
+}
+
+void send_products(int nsd){
+    struct Product products[MAX_PRODUCTS];
+    int i = 0, fd = open("products.dat", O_RDONLY, 0777);;
+    struct Product temp_product;
+    while(read(fd,&temp_product,sizeof(struct Product)) != 0){
+        products[i] = temp_product;
+        i++;
+    }
+    write(nsd,products,sizeof(products));
 }
 
 
@@ -78,8 +97,6 @@ int setup_connection(){
 }
 
 int main(){
-    struct Product products[1000];
-    clear_products(products,1000);
     int sd = setup_connection(),nsd=0,type;
     struct sockaddr_in client;
     printf("Listening to connections\n");
@@ -95,26 +112,27 @@ int main(){
                 while(1){
                     int choice=0;
                     read(nsd, &choice, sizeof(int));
+                    
                     if(choice==1){
                         struct Product product;
                         read(nsd,&product,sizeof(struct Product));
-                        add_product(products,product,1000);
+                        add_product(product);
                     }else if(choice==2){
                         int id;
                         read(nsd,&id,sizeof(int));
-                        delete_product(products,id,1000);
+                        delete_product(id);
                     }else if(choice==3){
                         int id,price;
                         read(nsd,&id,sizeof(int));
                         read(nsd,&price,sizeof(int));
-                        update_price(products,id,price,1000);
+                        update_price(id,price);
                     }else if(choice==4){
                         int id,quantity;
                         read(nsd,&id,sizeof(int));
                         read(nsd,&quantity,sizeof(int));
-                        update_quantity(products,id,quantity,1000);
+                        update_quantity(id,quantity);
                     }else if(choice==5){
-                        write(nsd,products,sizeof(products));
+                        send_products(nsd);
                     }
                 }
 
@@ -122,7 +140,12 @@ int main(){
 
                 printf("Connected to a user\n");
                 while(1){
-                    // user functions
+                    int choice=0;
+                    read(nsd, &choice, sizeof(int));
+                    
+                    if(choice==1){
+                        
+                    }
                     
                 }
 

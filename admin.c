@@ -27,6 +27,7 @@ int setup_admin_connection(){
 }
 
 void print_products(struct Product admin_products[], int length){
+    printf("\n");
     for(int i=0;i<length;i++){
         if(admin_products[i].id!=-1){
             printf("ID: %d\n",admin_products[i].id);
@@ -39,7 +40,7 @@ void print_products(struct Product admin_products[], int length){
 
 void admin_options(int sd){
     int choice=0;
-    struct Product products[1000];
+    struct Product products[MAX_PRODUCTS];
 
     while(1){
 
@@ -102,7 +103,7 @@ void admin_options(int sd){
         }else if(choice==5){
 
             read(sd,products,sizeof(products));
-            print_products(products,1000);
+            print_products(products,MAX_PRODUCTS);
         
         }else if(choice==6){
 
