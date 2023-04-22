@@ -3,15 +3,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/sem.h>
-#include <sys/socket.h>
 
-struct Product{
-    int id;
-    int quantity;
-    int price;
-    char name[100];
-};
+#include "structs.h"
+#include "admin_connections.h"
 
 void clear_products(struct Product admin_products[],  int length){
     for(int i=0;i<length;i++){
@@ -76,7 +70,7 @@ int main(){
     clear_products(admin_products,1000);
 
     while(1){
-        printf("Enter: \n1 to add a new Product.\n2 to delete a product.\n3 to update the price of a product.\n4 to update the quantity of a product.\n5 to see all your products.\n6 to exit.\n");
+        printf("Enter: \n1 to add a new Product.\n2 to delete a product.\n3 to update the price of a product.\n4 to update the quantity of a product.\n5 to see all your products.\n6 to listen to client.\n7 to exit;");
         scanf("%d",&choice);
         if(choice==1){
 
@@ -133,6 +127,10 @@ int main(){
             print_products(admin_products,1000);
         
         }else if(choice==6){
+
+            accept_request();
+            
+        }else if(choice==7){
 
             break;
 
