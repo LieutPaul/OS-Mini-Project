@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/file.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -25,13 +26,26 @@ void add_product(struct Product product){
 }
 
 void delete_product(int id){
+    struct flock fl;
     int fd = open("products.dat",O_RDWR, 0777);
     struct Product temp_product;
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id==id){
+
+            fl.l_whence=SEEK_CUR; 
+            fl.l_start=0;        
+            fl.l_len=sizeof(struct Product);        
+            fl.l_pid=getpid(); 
+            fl.l_type=F_WRLCK;
+            fcntl(fd, F_SETLKW, &fl);
+            
             temp_product.id=-1;
-            lseek(fd,-sizeof(temp_product),SEEK_CUR);
+            lseek(fd,-sizeof(struct Product),SEEK_CUR);
             write(fd,&temp_product,sizeof(struct Product));
+
+            fl.l_type=F_UNLCK;
+            fcntl(fd, F_SETLKW, &fl); 
+
             printf("Deleted Product\n");
             return ;
         }
@@ -40,13 +54,26 @@ void delete_product(int id){
 }
 
 void update_price(int id, int price){
+    struct flock fl;
     int fd = open("products.dat", O_RDWR, 0777);
     struct Product temp_product;
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id==id){
+
+            fl.l_whence=SEEK_CUR; 
+            fl.l_start=0;        
+            fl.l_len=sizeof(struct Product);        
+            fl.l_pid=getpid(); 
+            fl.l_type=F_WRLCK;
+            fcntl(fd, F_SETLKW, &fl);
+
             temp_product.price=price;
             lseek(fd,-sizeof(struct Product),SEEK_CUR);
             write(fd,&temp_product,sizeof(struct Product));
+
+            fl.l_type=F_UNLCK;
+            fcntl(fd, F_SETLKW, &fl);
+
             printf("Updated Product\n");
             return ;
         }
@@ -55,13 +82,26 @@ void update_price(int id, int price){
 }
 
 void update_quantity(int id, int quantity){
+    struct flock fl;
     int fd = open("products.dat",O_RDWR, 0777);
     struct Product temp_product;
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id == id){
+
+            fl.l_whence=SEEK_CUR; 
+            fl.l_start=0;        
+            fl.l_len=sizeof(struct Product);        
+            fl.l_pid=getpid(); 
+            fl.l_type=F_WRLCK;
+            fcntl(fd, F_SETLKW, &fl);
+
             temp_product.quantity = quantity;
             lseek(fd,-sizeof(struct Product),SEEK_CUR);
             write(fd,&temp_product,sizeof(struct Product));
+
+            fl.l_type=F_UNLCK;
+            fcntl(fd, F_SETLKW, &fl);
+            
             printf("Updated Product\n");
             return ;
         }
