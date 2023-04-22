@@ -25,12 +25,12 @@ void add_product(struct Product product){
 }
 
 void delete_product(int id){
-    int fd = open("products.dat",O_RDONLY, 0777);
+    int fd = open("products.dat",O_RDWR, 0777);
     struct Product temp_product;
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id==id){
             temp_product.id=-1;
-            // lseek(fd,-sizeof(struct Product),SEEK_CUR);
+            lseek(fd,-sizeof(temp_product),SEEK_CUR);
             write(fd,&temp_product,sizeof(struct Product));
             printf("Deleted Product\n");
             return ;
@@ -40,12 +40,12 @@ void delete_product(int id){
 }
 
 void update_price(int id, int price){
-    int fd = open("products.dat",O_RDONLY, 0777);
+    int fd = open("products.dat", O_RDWR, 0777);
     struct Product temp_product;
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id==id){
             temp_product.price=price;
-            // lseek(fd,-sizeof(struct Product),SEEK_CUR);
+            lseek(fd,-sizeof(struct Product),SEEK_CUR);
             write(fd,&temp_product,sizeof(struct Product));
             printf("Updated Product\n");
             return ;
@@ -55,12 +55,12 @@ void update_price(int id, int price){
 }
 
 void update_quantity(int id, int quantity){
-    int fd = open("products.dat",O_RDONLY, 0777);
+    int fd = open("products.dat",O_RDWR, 0777);
     struct Product temp_product;
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id == id){
             temp_product.quantity = quantity;
-            // lseek(fd,-sizeof(struct Product),SEEK_CUR);
+            lseek(fd,-sizeof(struct Product),SEEK_CUR);
             write(fd,&temp_product,sizeof(struct Product));
             printf("Updated Product\n");
             return ;
