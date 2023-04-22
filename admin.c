@@ -21,7 +21,6 @@ int setup_admin_connection(){
     connect(sd, (struct sockaddr *) &serv, sizeof(serv)); 
 
     write(sd,"admin",sizeof("admin"));
-    
     return sd;
 }
 

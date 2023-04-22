@@ -15,14 +15,14 @@ int main(){
     if(choice==1){
         sd = setup_user_connection();
         while(1){
-            printf("Press enter to send message\n");
+            printf("Press enter to send message: ");
             getchar();
             send_user_message(sd);
         }        
     }else if(choice==2){
         sd = setup_admin_connection();
         while(1){
-            printf("Press enter to send message\n");
+            printf("Press enter to send message: ");
             getchar();
             send_admin_message(sd);
         } 

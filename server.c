@@ -157,43 +157,38 @@ int setup_connection(){
     server.sin_port = htons(5001);
 
     bind(sd, (struct sockaddr *)&server, sizeof(server));
-    listen(sd, 5);
+    listen(sd, 50);
     return sd;
 }
 
 int main(){
     char user[50]="user",admin[50]="admin";
-    int sd = setup_connection();
+    int sd = setup_connection(),nsd=0;
     struct sockaddr_in client;
     printf("Listening to connections\n");
     while(1){
         socklen_t clientLen = sizeof(client);
-        int nsd = accept(sd, (struct sockaddr *)&client, &clientLen);
+        nsd = accept(sd, (struct sockaddr *)&client, &clientLen);
         char buf[100];
         if(!fork()){
             read(nsd, buf, sizeof(buf));
             if(strcmp(buf,user)==0){
-                printf("Connected to user");
-                if(!fork()){
-                    while(1){
-                        // user functions
-                        read(nsd, buf, sizeof(buf));
-                        printf("%s\n",buf);
-                    }
+                printf("Connected to user\n");
+                while(1){
+                    // user functions
+                    read(nsd, buf, sizeof(buf));
+                    printf("%s\n",buf);
                 }
             }else if(strcmp(buf,admin)==0){
-                printf("Connected to admin");
-                if(!fork()){
-                    while(1){
-                        // admin functions
-                        read(nsd, buf, sizeof(buf));
-                        printf("%s\n",buf);
-                    }
+                printf("Connected to admin\n");
+                while(1){
+                    // admin functions
+                    read(nsd, buf, sizeof(buf));
+                    printf("%s\n",buf);
                 }
             }
-        }else{
-            close(nsd);
         }   
     }
+    close(nsd);
     close(sd);
 }
