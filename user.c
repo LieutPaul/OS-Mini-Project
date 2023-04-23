@@ -24,16 +24,16 @@ int setup_user_connection(int customer_id){
     return sd;
 }
 
-// void print_products(struct Product admin_products[], int length){
-//     for(int i=0;i<length;i++){
-//         if(admin_products[i].id!=-1){
-//             printf("ID: %d\n",admin_products[i].id);
-//             printf("Name: %s\n",admin_products[i].name);
-//             printf("Price: %d\n",admin_products[i].price);
-//             printf("Quantity: %d\n\n",admin_products[i].quantity);
-//         }
-//     }
-// }
+void display_products(struct Product products[], int length){
+    for(int i=0;i<length;i++){
+        if(products[i].id!=-1){
+            printf("ID: %d\n",products[i].id);
+            printf("Name: %s\n",products[i].name);
+            printf("Price: %d\n",products[i].price);
+            printf("Quantity: %d\n\n",products[i].quantity);
+        }
+    }
+}
 
 void user_options(int sd){
     
@@ -60,15 +60,46 @@ void user_options(int sd){
         }
 
         if(choice==1){
+            
+            printf("\nDisplaying Items: \n");
             read(sd,products,sizeof(products));
-            // print_products(products,1000);
+            display_products(products,MAX_PRODUCTS);
+
         }else if(choice==2){
+            
+            int id=0,quantity=0,return_status=0;
+            printf("Enter id of product to add: ");
+            scanf("%d",&id);
+            printf("Enter quantity of product to add: ");
+            scanf("%d",&quantity);
+            write(sd,&id,sizeof(int));
+            write(sd,&quantity,sizeof(int));
+            read(sd,&return_status,sizeof(int));
+
+            return_status == 1 ? printf("Added Successfully\n") : printf("Insufficient Quantity or Full Cart\n");
 
         }else if(choice==3){
             
+            printf("\nDisplaying Cart Items:\n");
+            read(sd,products,sizeof(products));
+            display_products(products,MAX_CART_ITEMS);
+            
         }else if(choice==4){
+
+            int id=0,quantity=0;
+            printf("Enter id of product to update quantity of: ");
+            scanf("%d",&id);
+            printf("Enter new quantity of product to add to cart: ");
+            scanf("%d",&quantity);
+            write(sd,&id,sizeof(int));
+            write(sd,&quantity,sizeof(int));
             
         }else if(choice==5){
+
+            int id=0;
+            printf("Enter id of product to delete: ");
+            scanf("%d",&id);
+            write(sd,&id,sizeof(int));
             
         }else if(choice==6){
             

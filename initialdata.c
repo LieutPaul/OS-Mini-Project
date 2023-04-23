@@ -13,7 +13,8 @@ void clear_products(struct Product products[],  int length){
 
 void clear_customers(struct Customer customers[], int length){
     for(int i=0; i<length;i++){
-        customers[i].customer_id=-1;
+        customers[i].assigned = 0;
+        customers[i].customer_id = i+1;
         for(int j=0;j<MAX_CART_ITEMS;j++){
             customers[i].cart_items[j].id = -1;
         }

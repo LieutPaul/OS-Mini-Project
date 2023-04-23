@@ -13,6 +13,7 @@ struct Product{
 };
 
 struct Customer{
+    int assigned;
     int customer_id;
     struct Product cart_items[100];
 };

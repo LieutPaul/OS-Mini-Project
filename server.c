@@ -111,7 +111,7 @@ void update_quantity(int id, int quantity){
 
 void send_products(int nsd){
     struct Product products[MAX_PRODUCTS];
-    int i = 0, fd = open("products.dat", O_RDONLY, 0777);;
+    int i = 0, fd = open("products.dat", O_RDONLY, 0777);
     struct Product temp_product;
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         products[i] = temp_product;
@@ -120,6 +120,92 @@ void send_products(int nsd){
     write(nsd,products,sizeof(products));
 }
 
+struct Product* find_product_by_id(int id){
+    struct Product *product;
+    int fd = open("products.dat", O_RDONLY, 0777);
+    while(read(fd,product,sizeof(struct Product)) != 0){
+        if(product->id == id){
+            return product;
+        }
+    }
+    return NULL;
+}
+
+int generate_new_customerid(){
+
+    struct Customer temp_customer;
+    int fd = open("customers.dat",O_RDWR, 0777);
+
+    while(read(fd,&temp_customer,sizeof(struct Customer)) != 0){
+        if(temp_customer.assigned == 0){
+            temp_customer.assigned = 1;
+            lseek(fd,-sizeof(struct Customer),SEEK_CUR);
+            write(fd,&temp_customer,sizeof(struct Customer));
+            return temp_customer.customer_id;
+        }
+    }
+    return -1;
+}
+
+int add_cart_item(int customer_id,int product_id,int quantity){
+    
+    struct Customer temp_customer;
+    struct Product *product = find_product_by_id(product_id);
+    
+    if(product == NULL){
+        printf("Product not found\n");
+        return -1;
+    }
+    
+    int fd = open("customers.dat", O_RDWR, 0777);
+
+    while(read(fd,&temp_customer,sizeof(struct Customer)) != 0){
+        
+        if(temp_customer.customer_id==customer_id){
+            
+            for(int j =0;j<MAX_CART_ITEMS;j++){
+                
+                if(temp_customer.cart_items[j].id == -1){
+                    
+                    if(quantity<product->quantity){
+                        
+                        product->quantity=quantity;
+                        temp_customer.cart_items[j] = *product;
+                        lseek(fd,-sizeof(struct Customer),SEEK_CUR);
+                        write(fd,&temp_customer,sizeof(struct Customer));
+                        printf("Added to Cart\n");
+                        return 1;
+
+                    }else{
+                        printf("Insufficient Quantity\n");
+                        return -1;
+                    }
+                }
+            }
+            printf("Cart Limit Reached\n");
+            return -1;
+        }
+    }
+
+    printf("Could not find Customer\n");
+    return -1;
+}
+
+void send_cart_items(int customer_id, int nsd){
+    
+    struct Customer temp_customer;
+    int fd = open("customers.dat",O_RDWR, 0777);
+
+    while(read(fd,&temp_customer,sizeof(struct Customer)) != 0){
+        
+        if(temp_customer.customer_id==customer_id){
+            
+            write(nsd,temp_customer.cart_items,sizeof(temp_customer.cart_items));
+            return ;
+
+        }
+    }
+}
 
 int setup_connection(){
     struct sockaddr_in server;
@@ -141,9 +227,12 @@ int main(){
     struct sockaddr_in client;
     printf("Listening to connections\n");
     while(1){
+
         socklen_t clientLen = sizeof(client);
         nsd = accept(sd, (struct sockaddr *)&client, &clientLen);
+        
         if(!fork()){
+
             read(nsd, &type, sizeof(int));
 
             if(type==0){
@@ -172,19 +261,47 @@ int main(){
                         read(nsd,&quantity,sizeof(int));
                         update_quantity(id,quantity);
                     }else if(choice==5){
+                        printf("Sending Products\n");
                         send_products(nsd);
+                    }else if(choice==6){
+                        break;
                     }
                 }
 
             }else if(type==1){
 
-                printf("Connected to a user\n");
+                int user_id;
+                read(nsd,&user_id,sizeof(int));
+                
+                if(user_id == -1){
+                    user_id=generate_new_customerid();
+                    write(nsd,&user_id,sizeof(int));
+                }
+                
+                printf("Connected to a user of id: %d\n",user_id);
+
                 while(1){
                     int choice=0;
                     read(nsd, &choice, sizeof(int));
-                    
                     if(choice==1){
                         
+                        printf("Sending Products\n");
+                        send_products(nsd);
+                   
+                    }else if (choice==2){
+                        
+                        int product_id=0,quantity=0,ret=0;
+                        read(nsd,&product_id,sizeof(int));
+                        read(nsd,&quantity,sizeof(int));
+                        ret = add_cart_item(user_id,product_id,quantity);
+                        write(nsd,&ret,sizeof(int));
+
+                    }else if (choice==3){
+
+                        send_cart_items(user_id,nsd);
+
+                    }else if (choice==7){
+                        break;
                     }
                     
                 }

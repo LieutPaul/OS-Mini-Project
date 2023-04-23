@@ -4,6 +4,6 @@
 
 int setup_user_connection(int);
 void user_options(int);
-// void print_products(struct Product[], int);
+void display_products(struct Product[], int);
 
 #endif
