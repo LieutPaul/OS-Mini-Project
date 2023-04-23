@@ -31,6 +31,9 @@ void delete_product(int id){
     struct Product temp_product;
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id==id){
+            
+            temp_product.id=-1;
+            lseek(fd,-sizeof(struct Product),SEEK_CUR);
 
             fl.l_whence=SEEK_CUR; 
             fl.l_start=0;        
@@ -39,8 +42,6 @@ void delete_product(int id){
             fl.l_type=F_WRLCK;
             fcntl(fd, F_SETLKW, &fl);
             
-            temp_product.id=-1;
-            lseek(fd,-sizeof(struct Product),SEEK_CUR);
             write(fd,&temp_product,sizeof(struct Product));
 
             fl.l_type=F_UNLCK;
@@ -60,6 +61,9 @@ void update_price(int id, int price){
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id==id){
 
+            temp_product.price=price;
+            lseek(fd,-sizeof(struct Product),SEEK_CUR);
+
             fl.l_whence=SEEK_CUR; 
             fl.l_start=0;        
             fl.l_len=sizeof(struct Product);        
@@ -67,8 +71,6 @@ void update_price(int id, int price){
             fl.l_type=F_WRLCK;
             fcntl(fd, F_SETLKW, &fl);
 
-            temp_product.price=price;
-            lseek(fd,-sizeof(struct Product),SEEK_CUR);
             write(fd,&temp_product,sizeof(struct Product));
 
             fl.l_type=F_UNLCK;
@@ -88,6 +90,9 @@ void update_quantity(int id, int quantity){
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id == id){
 
+            temp_product.quantity = quantity;
+            lseek(fd,-sizeof(struct Product),SEEK_CUR);
+
             fl.l_whence=SEEK_CUR; 
             fl.l_start=0;        
             fl.l_len=sizeof(struct Product);        
@@ -95,8 +100,6 @@ void update_quantity(int id, int quantity){
             fl.l_type=F_WRLCK;
             fcntl(fd, F_SETLKW, &fl);
 
-            temp_product.quantity = quantity;
-            lseek(fd,-sizeof(struct Product),SEEK_CUR);
             write(fd,&temp_product,sizeof(struct Product));
 
             fl.l_type=F_UNLCK;
@@ -207,6 +210,8 @@ int update_cart_item(int customer_id,int product_id,int quantity){
         printf("Insufficient Quantity\n");
         return -1;
     }
+    
+    struct flock fl;
 
     while(read(fd,&temp_customer,sizeof(struct Customer)) != 0){
 
@@ -215,9 +220,22 @@ int update_cart_item(int customer_id,int product_id,int quantity){
             for(int i = 0; i < MAX_CART_ITEMS; i++){
 
                 if(temp_customer.cart_items[i].id == product_id){
+                    
                     temp_customer.cart_items[i].quantity = quantity;
                     lseek(fd,-sizeof(struct Customer),SEEK_CUR);
+
+                    fl.l_whence=SEEK_CUR; 
+                    fl.l_start=0;        
+                    fl.l_len=sizeof(struct Customer);        
+                    fl.l_pid=getpid(); 
+                    fl.l_type=F_WRLCK;
+                    fcntl(fd, F_SETLKW, &fl);
+
                     write(fd,&temp_customer,sizeof(struct Customer));
+
+                    fl.l_type=F_UNLCK;
+                    fcntl(fd, F_SETLKW, &fl);
+
                     printf("Updated Cart Item\n");
                     return 1;
                 }
@@ -246,6 +264,8 @@ int delete_cart_item(int customer_id,int product_id){
         return -1;
     }
 
+    struct flock fl;
+    
     while(read(fd,&temp_customer,sizeof(struct Customer)) != 0){
 
         if(temp_customer.customer_id==customer_id && temp_customer.assigned==1){
@@ -253,9 +273,22 @@ int delete_cart_item(int customer_id,int product_id){
             for(int i = 0; i < MAX_CART_ITEMS; i++){
 
                 if(temp_customer.cart_items[i].id == product_id){
+                    
                     temp_customer.cart_items[i].id = -1;
                     lseek(fd,-sizeof(struct Customer),SEEK_CUR);
+                    
+                    fl.l_whence=SEEK_CUR; 
+                    fl.l_start=0;        
+                    fl.l_len=sizeof(struct Customer);        
+                    fl.l_pid=getpid(); 
+                    fl.l_type=F_WRLCK;
+                    fcntl(fd, F_SETLKW, &fl);
+
                     write(fd,&temp_customer,sizeof(struct Customer));
+
+                    fl.l_type=F_UNLCK;
+                    fcntl(fd, F_SETLKW, &fl);
+                    
                     printf("Deleted Cart Item\n");
                     return 1;
                 }
