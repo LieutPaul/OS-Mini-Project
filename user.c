@@ -86,20 +86,28 @@ void user_options(int sd){
             
         }else if(choice==4){
 
-            int id=0,quantity=0;
+            int id=0,quantity=0,return_status=-1;
             printf("Enter id of product to update quantity of: ");
             scanf("%d",&id);
             printf("Enter new quantity of product to add to cart: ");
             scanf("%d",&quantity);
             write(sd,&id,sizeof(int));
             write(sd,&quantity,sizeof(int));
+
+            read(sd,&return_status,sizeof(int));
+
+            return_status == 1 ? printf("Updated Successfully.\n") : printf("Insufficient Quantity or Item not found.\n");
             
         }else if(choice==5){
 
-            int id=0;
+            int id = 0, return_status = -1;
             printf("Enter id of product to delete: ");
             scanf("%d",&id);
             write(sd,&id,sizeof(int));
+
+            read(sd,&return_status,sizeof(int));
+
+            return_status == 1 ? printf("Deleted Successfully.\n") : printf("Item not found or not in cart.\n");
             
         }else if(choice==6){
             
