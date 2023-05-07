@@ -40,4 +40,6 @@ int main(){
         write(fd2,&customers[i],sizeof(struct Customer));
     }
 
+    int fd3 = open("transaction_logs.txt",O_CREAT,0777);
+    
 }

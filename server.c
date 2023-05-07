@@ -324,11 +324,13 @@ void payment_portal(int user_id, int nsd){
     
     int cfd = open("customers.dat",O_RDWR,0777);
     int pfd = open("products.dat",O_RDWR,0777);
-    
+    int lfd = open("transaction_logs.txt",O_WRONLY | O_APPEND,0777);
+    int b=0;
+
     struct Customer customer,temp_customer;
     struct Product temp_product;
-
     struct flock fl;
+    char logtext[1200];
 
     while(read(cfd,&customer,sizeof(struct Customer)) != 0){
         if(customer.customer_id==user_id && customer.assigned==1){
@@ -357,8 +359,12 @@ void payment_portal(int user_id, int nsd){
                         temp_product.quantity -= customer.cart_items[i].quantity;
                         write(pfd,&temp_product,sizeof(struct Product));
                         printf("Bought Item : %d.\n",temp_product.id);
+                        b = snprintf(logtext,sizeof(logtext),"Customer of id %d bought %d amount of product of id %d.\n",user_id,customer.cart_items[i].quantity,customer.cart_items[i].id);
+                        write(lfd,logtext,b);
                     }else{
                         printf("Insufficient Quantity : %d.\n",temp_product.id);
+                        b = snprintf(logtext,sizeof(logtext),"Customer of id %d could not buy %d amount of product of id %d because of insufficient quantity.\n",user_id,customer.cart_items[i].quantity,customer.cart_items[i].id);
+                        write(lfd,logtext,b);
                     }
 
                     fl.l_type=F_UNLCK;
@@ -367,6 +373,8 @@ void payment_portal(int user_id, int nsd){
                 }
             }
             if (found_product==0){
+                b = snprintf(logtext,sizeof(logtext),"Customer of id %d could not buy %d amount of product of id %d because product does not exist.\n",user_id,customer.cart_items[i].quantity,customer.cart_items[i].id);
+                write(lfd,logtext,b);
                 printf("Product not found : %d.\n",customer.cart_items[i].id);
             }
         }
@@ -385,6 +393,8 @@ void payment_portal(int user_id, int nsd){
     
     close(cfd);
     close(pfd);
+    close(lfd);
+
 }
 
 int setup_connection(){

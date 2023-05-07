@@ -1,0 +1,4 @@
+Customer of id 1 bought 10 amount of product of id 1.
+Customer of id 1 bought 40 amount of product of id 2.
+Customer of id 2 bought 10 amount of product of id 1.
+Customer of id 2 could not buy 30 amount of product of id 2 because of insufficient quantity.
