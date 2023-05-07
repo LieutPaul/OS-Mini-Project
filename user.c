@@ -110,7 +110,7 @@ void user_options(int sd){
             return_status == 1 ? printf("Deleted Successfully.\n") : printf("Item not found or not in cart.\n");
             
         }else if(choice==6){
-            
+            // Amount to be paid
         }else if(choice==7){
             break;
         }

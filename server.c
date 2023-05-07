@@ -311,13 +311,80 @@ void send_cart_items(int customer_id, int nsd){
 
     while(read(fd,&temp_customer,sizeof(struct Customer)) != 0){
         
-        if(temp_customer.customer_id==customer_id){
+        if(temp_customer.customer_id==customer_id && temp_customer.assigned==1){
             
             write(nsd,temp_customer.cart_items,sizeof(temp_customer.cart_items));
             return ;
 
         }
     }
+}
+
+void payment_portal(int user_id, int nsd){
+    
+    int cfd = open("customers.dat",O_RDWR,0777);
+    int pfd = open("products.dat",O_RDWR,0777);
+    
+    struct Customer customer,temp_customer;
+    struct Product temp_product;
+
+    struct flock fl;
+
+    while(read(cfd,&customer,sizeof(struct Customer)) != 0){
+        if(customer.customer_id==user_id && customer.assigned==1){
+            break;
+        }
+    }
+    
+    int found_product = 0;
+    
+    for(int i=0;i<MAX_CART_ITEMS;i++){
+        if(customer.cart_items[i].id != -1){
+            found_product = 0;
+            while(read(pfd,&temp_product,sizeof(struct Product)) != 0){
+                if(temp_product.id == customer.cart_items[i].id){
+                    
+                    found_product=1;
+                    lseek(pfd,-sizeof(struct Product),SEEK_CUR);
+                    fl.l_whence=SEEK_CUR; 
+                    fl.l_start=0;        
+                    fl.l_len=sizeof(struct Product);        
+                    fl.l_pid=getpid(); 
+                    fl.l_type=F_WRLCK;
+                    fcntl(pfd, F_SETLKW, &fl);
+
+                    if(temp_product.quantity >= customer.cart_items[i].quantity){
+                        temp_product.quantity -= customer.cart_items[i].quantity;
+                        write(pfd,&temp_product,sizeof(struct Product));
+                        printf("Bought Item : %d.\n",temp_product.id);
+                    }else{
+                        printf("Insufficient Quantity : %d.\n",temp_product.id);
+                    }
+
+                    fl.l_type=F_UNLCK;
+                    fcntl(pfd, F_SETLKW, &fl);
+                    break;
+                }
+            }
+            if (found_product==0){
+                printf("Product not found : %d.\n",customer.cart_items[i].id);
+            }
+        }
+        customer.cart_items[i].id = -1;
+    }
+
+    lseek(cfd,0,SEEK_SET);
+
+    while( read(cfd,&temp_customer,sizeof(struct Customer)) != 0 ){
+        if(temp_customer.customer_id == customer.customer_id){
+            lseek(cfd,-sizeof(struct Customer),SEEK_CUR);
+            write(cfd,&customer,sizeof(struct Customer));
+            break;
+        }
+    }
+    
+    close(cfd);
+    close(pfd);
 }
 
 int setup_connection(){
@@ -339,6 +406,7 @@ int main(){
     int sd = setup_connection(),nsd=0,type;
     struct sockaddr_in client;
     printf("Listening to connections\n");
+    
     while(1){
 
         socklen_t clientLen = sizeof(client);
@@ -427,6 +495,10 @@ int main(){
                         read(nsd,&product_id,sizeof(int));
                         ret = delete_cart_item(user_id,product_id);
                         write(nsd,&ret,sizeof(int));
+
+                    }else if(choice==6){
+
+                        payment_portal(user_id,nsd);
 
                     }else if (choice==7){
                         break;
