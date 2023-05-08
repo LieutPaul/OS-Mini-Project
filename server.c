@@ -11,24 +11,55 @@
 
 #include "structs.h"
 
-void add_product(struct Product product){
+int add_product(struct Product product, int nsd){
+    
     int fd = open("products.dat", O_RDWR, 0777);
+    int afd = open("admin_logs.txt", O_WRONLY | O_APPEND ,0777),b=0;
+    char admin_log[1200];
+
     struct Product temp_product;
+    while(read(fd,&temp_product,sizeof(struct Product)) != 0){
+        if(temp_product.id == product.id){
+            printf("Product with id exists\n");
+            b = snprintf(admin_log,sizeof(admin_log),"Could not add product of id %d as it already exists.\n",product.id);
+            write(afd,admin_log,b);
+            close(fd);
+            close(afd);
+            return -1;
+        }
+    }
+    
+    lseek(fd,0,SEEK_SET);
+
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id==-1){
             lseek(fd,-sizeof(struct Product),SEEK_CUR);
             write(fd,&product,sizeof(struct Product));
             printf("Added Product\n");
-            return ;
+            b = snprintf(admin_log,sizeof(admin_log),"Added product of id %d.\n",product.id);
+            write(afd,admin_log,b);
+            close(fd);
+            close(afd);
+            return 1;
         }
     }
     printf("Could Not Add\n");
+    b = snprintf(admin_log,sizeof(admin_log),"Could not add product of id %d.\n",product.id);
+    write(afd,admin_log,b);
+    close(fd);
+    close(afd);
+    return -2;
+
 }
 
-void delete_product(int id){
+int delete_product(int id, int nsd){
     struct flock fl;
     int fd = open("products.dat",O_RDWR, 0777);
+    int afd = open("admin_logs.txt", O_WRONLY | O_APPEND ,0777),b=0;
+    char admin_log[1200];
+
     struct Product temp_product;
+
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id==id){
             
@@ -48,16 +79,31 @@ void delete_product(int id){
             fcntl(fd, F_SETLKW, &fl); 
 
             printf("Deleted Product\n");
-            return ;
+            
+            b = snprintf(admin_log,sizeof(admin_log),"Deleted product of id %d.\n",id);
+            write(afd,admin_log,b);
+            close(fd);
+            close(afd);
+            return 1;
         }
     }
+
     printf("Could Not Find Product\n");
+    b = snprintf(admin_log,sizeof(admin_log),"Could not delete product of id %d.\n",id);
+    write(afd,admin_log,b);
+    close(fd);
+    close(afd);
+    return -1;
 }
 
-void update_price(int id, int price){
+int update_price(int id, int price, int nsd){
     struct flock fl;
     int fd = open("products.dat", O_RDWR, 0777);
+    int afd = open("admin_logs.txt", O_WRONLY | O_APPEND ,0777),b=0;
+    char admin_log[1200];
+
     struct Product temp_product;
+
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id==id){
 
@@ -75,17 +121,33 @@ void update_price(int id, int price){
 
             fl.l_type=F_UNLCK;
             fcntl(fd, F_SETLKW, &fl);
-
+            
+            b = snprintf(admin_log,sizeof(admin_log),"Update price of product of id %d to %d.\n",id,price);
+            write(afd,admin_log,b);
+            
             printf("Updated Product\n");
-            return ;
+            close(fd);
+            close(afd);
+            return 1;
         }
     }
     printf("Could Not Find Product\n");
+    
+    b = snprintf(admin_log,sizeof(admin_log),"Could not update price of product of id %d.\n",id);
+    write(afd,admin_log,b);
+    
+    close(fd);
+    close(afd);
+
+    return -1;
 }
 
-void update_quantity(int id, int quantity){
+int update_quantity(int id, int quantity, int nsd){
     struct flock fl;
     int fd = open("products.dat",O_RDWR, 0777);
+    int afd = open("admin_logs.txt", O_WRONLY | O_APPEND ,0777),b=0;
+    char admin_log[1200];
+
     struct Product temp_product;
     while(read(fd,&temp_product,sizeof(struct Product)) != 0){
         if(temp_product.id == id){
@@ -106,10 +168,25 @@ void update_quantity(int id, int quantity){
             fcntl(fd, F_SETLKW, &fl);
             
             printf("Updated Product\n");
-            return ;
+
+            b = snprintf(admin_log,sizeof(admin_log),"Updated quantity of product of id %d to %d.\n",id,quantity);
+            write(afd,admin_log,b);
+
+            close(fd);
+            close(afd);
+
+            return 1;
         }
     }
+    
     printf("Could Not Find Product\n");
+    b = snprintf(admin_log,sizeof(admin_log),"Could not update quantity of product of id %d.\n",id);
+    write(afd,admin_log,b);
+    
+    close(fd);
+    close(afd);
+    
+    return -1;
 }
 
 void send_products(int nsd){
@@ -121,6 +198,7 @@ void send_products(int nsd){
         i++;
     }
     write(nsd,products,sizeof(products));
+    close(fd);
 }
 
 int generate_new_customerid(){
@@ -133,9 +211,11 @@ int generate_new_customerid(){
             temp_customer.assigned = 1;
             lseek(fd,-sizeof(struct Customer),SEEK_CUR);
             write(fd,&temp_customer,sizeof(struct Customer));
+            close(fd);
             return temp_customer.customer_id;
         }
     }
+    close(fd);
     return -1;
 }
 
@@ -144,9 +224,11 @@ struct Product* find_product_by_id(int id){
     int fd = open("products.dat", O_RDONLY, 0777);
     while(read(fd,product,sizeof(struct Product)) != 0){
         if(product->id == id){
+            close(fd);
             return product;
         }
     }
+    close(fd);
     return NULL;
 }
 
@@ -177,19 +259,23 @@ int add_cart_item(int customer_id,int product_id,int quantity){
                         lseek(fd,-sizeof(struct Customer),SEEK_CUR);
                         write(fd,&temp_customer,sizeof(struct Customer));
                         printf("Added to Cart\n");
+                        close(fd);
                         return 1;
 
                     }else{
                         printf("Insufficient Quantity\n");
+                        close(fd);
                         return -1;
                     }
                 }
             }
             printf("Cart Limit Reached\n");
+            close(fd);
             return -1;
         }
     }
 
+    close(fd);
     printf("Could not find Customer\n");
     return -1;
 }
@@ -203,11 +289,13 @@ int update_cart_item(int customer_id,int product_id,int quantity){
     
     if(product == NULL){
         printf("Product does not exist.\n");
+        close(fd);
         return -1;
     }
 
     if(quantity > product->quantity){
         printf("Insufficient Quantity\n");
+        close(fd);
         return -1;
     }
     
@@ -237,16 +325,19 @@ int update_cart_item(int customer_id,int product_id,int quantity){
                     fcntl(fd, F_SETLKW, &fl);
 
                     printf("Updated Cart Item\n");
+                    close(fd);
                     return 1;
                 }
 
             }
             printf("Item not found in cart\n");
+            close(fd);
             return -1;
         }
     }
 
     printf("Could not find Customer\n");
+    close(fd);
     return -1;
 
 }
@@ -261,6 +352,7 @@ int delete_cart_item(int customer_id,int product_id){
     
     if(product == NULL){
         printf("Product does not exist.\n");
+        close(fd);
         return -1;
     }
 
@@ -290,16 +382,19 @@ int delete_cart_item(int customer_id,int product_id){
                     fcntl(fd, F_SETLKW, &fl);
                     
                     printf("Deleted Cart Item\n");
+                    close(fd);
                     return 1;
                 }
 
             }
             printf("Item not found in cart\n");
+            close(fd);
             return -1;
         }
     }
 
     printf("Could not find Customer\n");
+    close(fd);
     return -1;
 
 }
@@ -314,6 +409,7 @@ void send_cart_items(int customer_id, int nsd){
         if(temp_customer.customer_id==customer_id && temp_customer.assigned==1){
             
             write(nsd,temp_customer.cart_items,sizeof(temp_customer.cart_items));
+            close(fd);
             return ;
 
         }
@@ -342,7 +438,10 @@ void payment_portal(int user_id, int nsd){
     
     for(int i=0;i<MAX_CART_ITEMS;i++){
         if(customer.cart_items[i].id != -1){
+            
             found_product = 0;
+            lseek(pfd,0,SEEK_SET);
+
             while(read(pfd,&temp_product,sizeof(struct Product)) != 0){
                 if(temp_product.id == customer.cart_items[i].id){
                     
@@ -372,6 +471,7 @@ void payment_portal(int user_id, int nsd){
                     break;
                 }
             }
+            
             if (found_product==0){
                 b = snprintf(logtext,sizeof(logtext),"Customer of id %d could not buy %d amount of product of id %d because product does not exist.\n",user_id,customer.cart_items[i].quantity,customer.cart_items[i].id);
                 write(lfd,logtext,b);
@@ -430,27 +530,31 @@ int main(){
 
                 printf("\nConnected to an admin\n");
                 while(1){
-                    int choice=0;
+                    int choice=0,ret=0;
                     read(nsd, &choice, sizeof(int));
                     
                     if(choice==1){
                         struct Product product;
                         read(nsd,&product,sizeof(struct Product));
-                        add_product(product);
+                        ret = add_product(product,nsd);
+                        write(nsd,&ret,sizeof(int));
                     }else if(choice==2){
                         int id;
                         read(nsd,&id,sizeof(int));
-                        delete_product(id);
+                        ret = delete_product(id,nsd);
+                        write(nsd,&ret,sizeof(int));
                     }else if(choice==3){
                         int id,price;
                         read(nsd,&id,sizeof(int));
                         read(nsd,&price,sizeof(int));
-                        update_price(id,price);
+                        ret = update_price(id,price,nsd);
+                        write(nsd,&ret,sizeof(int));
                     }else if(choice==4){
                         int id,quantity;
                         read(nsd,&id,sizeof(int));
                         read(nsd,&quantity,sizeof(int));
-                        update_quantity(id,quantity);
+                        ret = update_quantity(id,quantity,nsd);
+                        write(nsd,&ret,sizeof(int));
                     }else if(choice==5){
                         printf("Sending Products\n");
                         send_products(nsd);

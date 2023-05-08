@@ -31,6 +31,8 @@ int main(){
 
     int fd1 = open("products.dat", O_CREAT | O_WRONLY, 0777);
     int fd2 = open("customers.dat", O_CREAT | O_WRONLY, 0777);
+    int fd3 = open("transaction_logs.txt",O_CREAT,0777);
+    int fd4 = open("admin_logs.txt",O_CREAT,0777);
 
     for(int i=0;i<MAX_PRODUCTS;i++){
         write(fd1,&products[i],sizeof(struct Product));
@@ -40,6 +42,8 @@ int main(){
         write(fd2,&customers[i],sizeof(struct Customer));
     }
 
-    int fd3 = open("transaction_logs.txt",O_CREAT,0777);
-    
+    close(fd1);
+    close(fd2);
+    close(fd3);
+    close(fd4);
 }

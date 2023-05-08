@@ -39,7 +39,7 @@ void print_products(struct Product admin_products[], int length){
 }
 
 void admin_options(int sd){
-    int choice=0;
+    int choice=0,return_status=0;
     struct Product products[MAX_PRODUCTS];
 
     while(1){
@@ -72,6 +72,15 @@ void admin_options(int sd){
             printf("Enter quantity of product: ");
             scanf(" %d",&product.quantity);
             write(sd, &product, sizeof(struct Product));
+            read(sd,&return_status,sizeof(int));
+
+            if(return_status==1){
+                printf("Added Product.\n");
+            }else if(return_status == -1){
+                printf("Product with that id already exists.\n");
+            }else if(return_status == -2){
+                printf("Could not add product\n");
+            }
 
         }else if(choice==2){
             
@@ -79,6 +88,13 @@ void admin_options(int sd){
             printf("Enter id of product to delete (>0): ");
             scanf("%d",&id);
             write(sd,&id,sizeof(int));
+            read(sd,&return_status,sizeof(int));
+
+            if(return_status==1){
+                printf("Deleted Product.\n");
+            }else if(return_status == -1){
+                printf("Could not find product with that id.\n");
+            }
 
         }else if(choice==3){
             
@@ -89,6 +105,13 @@ void admin_options(int sd){
             scanf("%d",&price);
             write(sd,&id,sizeof(int));
             write(sd,&price,sizeof(int));
+            read(sd,&return_status,sizeof(int));
+
+            if(return_status==1){
+                printf("Updated price of Product.\n");
+            }else if(return_status == -1){
+                printf("Could not find product with that id.\n");
+            }
 
         }else if(choice==4){
 
@@ -99,6 +122,13 @@ void admin_options(int sd){
             scanf("%d",&quantity);
             write(sd,&id,sizeof(int));
             write(sd,&quantity,sizeof(int));
+            read(sd,&return_status,sizeof(int));
+
+            if(return_status==1){
+                printf("Updated quantity of Product.\n");
+            }else if(return_status == -1){
+                printf("Could not find product with that id.\n");
+            }
 
         }else if(choice==5){
 

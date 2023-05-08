@@ -1,0 +1,13 @@
+Added product of id 1.
+Added product of id 2.
+Could not add product of id 1 as it already exists.
+Could not delete product of id 3.
+Update price of product of id 1 to 25000.
+Could not update price of product of id 3.
+Updated quantity of product of id 1 to 90.
+Could not update quantity of product of id 3.
+Updated quantity of product of id 1 to 100.
+Update price of product of id 1 to 25000.
+Update price of product of id 1 to 20000.
+Updated quantity of product of id 1 to 100.
+Updated quantity of product of id 2 to 100.
