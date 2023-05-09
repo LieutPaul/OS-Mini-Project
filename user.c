@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <string.h>
 #include "user.h"
 
 int setup_user_connection(int customer_id){
@@ -110,7 +111,21 @@ void user_options(int sd){
             return_status == 1 ? printf("Deleted Successfully.\n") : printf("Item not found or not in cart.\n");
             
         }else if(choice==6){
-            // Amount to be paid
+            
+            char message[1200];
+            int price=0;
+            printf("Enter price:\n");
+            scanf("%d",&price);
+            write(sd,&price,sizeof(int));
+            
+            while(1){
+                read(sd,message,sizeof(message));
+                printf("%s",message);
+                if(strcmp(message,"Finished Transactions.\n")==0){
+                    break;
+                }
+            }
+
         }else if(choice==7){
             break;
         }
