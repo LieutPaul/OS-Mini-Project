@@ -3,3 +3,5 @@ customers.dat
 products.dat
 initialdata
 server
+admin_logs.txt
+transaction_logs.txt

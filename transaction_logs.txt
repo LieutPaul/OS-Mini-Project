@@ -1,5 +1,2 @@
-Customer of id 1 bought 50 amount of product of id 1.
-Customer of id 1 bought 70 amount of product of id 2.
-Customer of id 2 bought 50 amount of product of id 1.
-Customer of id 2 bought 20 amount of product of id 2.
-Customer of id 1 bought 7 amount of product of id 2.
+Customer of id 1 bought 30 amount of product of id 1.
+Customer of id 1 bought 40 amount of product of id 2.

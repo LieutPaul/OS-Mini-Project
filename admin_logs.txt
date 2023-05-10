@@ -1,6 +1,2 @@
 Added product of id 1.
 Added product of id 2.
-Update price of product of id 2 to 200.
-Update price of product of id 1 to 20000.
-Updated quantity of product of id 1 to 100.
-Updated quantity of product of id 2 to 100.
