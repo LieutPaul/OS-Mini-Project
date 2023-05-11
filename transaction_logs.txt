@@ -1,2 +1,0 @@
-Customer of id 1 bought 30 amount of product of id 1.
-Customer of id 1 bought 40 amount of product of id 2.

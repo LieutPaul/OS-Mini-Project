@@ -1,2 +1,0 @@
-Added product of id 1.
-Added product of id 2.
